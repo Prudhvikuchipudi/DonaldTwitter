@@ -2,6 +2,7 @@ import twitter
 import json
 import sqlite3 as lite
 import sys
+import re
 
 api = twitter.Api(consumer_key='3aOfW5zQJNkwCvBlGDGLAsro9',
         consumer_secret='zrAAcWgz5RqFgejOf5I7dRhvayZKcSnNdCunwOtKUzc4XgYEFR',
@@ -17,8 +18,11 @@ except lite.Error as e:
 statuses = api.GetUserTimeline(screen_name='realDonaldTrump', count=200, include_rts=False)
 cur = con.cursor()
 for status in statuses:
-    print(status)
-    cur.execute("INSERT into Tweets(text) VALUES (?);", (status.text,))
+    image_link = ''
+    if 'https://t.co' in status.text:
+        image_link = re.search("(?P<url>https?://[^\s]+)", status.text).group('url')
+
+    cur.execute("INSERT into Tweets(text, img) VALUES (?, ?);", (status.text,image_link))
     
 con.commit()
 con.close()
